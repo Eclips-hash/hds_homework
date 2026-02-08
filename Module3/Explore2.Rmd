@@ -74,3 +74,79 @@ write_csv(clinical_matched, "output/clinical_with_mutations.csv")
 
 cat("Saved cleaned datasets to output/ folder\n")
 ```
+```{r cohort-tableA, message=FALSE}
+# Table 1A: Clinical characteristics by PAM50 (NO IntClust)
+table1a <- clinical_clean %>%
+  select(
+    age_at_diagnosis,
+    menopausal_state,
+    er_status_ihc,
+    her2_status_snp6,
+    chemotherapy,
+    hormone_therapy,
+    radiotherapy,
+    os_months,
+    os_status,
+    pam50_subtype
+  ) %>%
+  tbl_summary(
+    by = pam50_subtype,
+    statistic = list(
+      all_continuous() ~ "{median} ({p25}, {p75})",  # Median (IQR) - better for survival
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = list(
+      all_continuous() ~ 1,
+      all_categorical() ~ c(0, 1)
+    ),
+    label = list(
+      age_at_diagnosis ~ "Age at diagnosis, years",
+      menopausal_state ~ "Menopausal status",
+      er_status_ihc ~ "ER status (IHC)",
+      her2_status_snp6 ~ "HER2 status (SNP6)",
+      chemotherapy ~ "Received chemotherapy",
+      hormone_therapy ~ "Received hormone therapy",
+      radiotherapy ~ "Received radiotherapy",
+      os_months ~ "Overall survival, months",
+      os_status ~ "Vital status"
+    ),
+    missing = "no"
+  ) %>%
+  add_n() %>%                           # Add sample size row at top
+  add_overall() %>%
+  add_p(test = list(
+    all_continuous() ~ "kruskal.test",  # Non-parametric for survival (skewed)
+    all_categorical() ~ "chisq.test"
+  )) %>%
+  bold_labels() %>%
+  modify_caption("**Table 1A: Clinical and Demographic Characteristics by PAM50 Subtype**") %>%
+  modify_footnote(
+    update = all_stat_cols() ~ "Median (IQR) for continuous variables; n (%) for categorical variables"
+  )
+
+# Print
+table1a
+```
+
+```{r cohort-tableB, message=FALSE}
+# Table 1B: PAM50 vs IntClust cross-tabulation
+table1b <- clinical_clean %>%
+  select(pam50_subtype, intclust_subtype) %>%
+  tbl_cross(
+    row = pam50_subtype,
+    col = intclust_subtype,
+    percent = "row",                    # % of each PAM50 subtype
+    margin = "row",                     # Row totals
+    label = list(
+      pam50_subtype ~ "PAM50 Subtype",
+      intclust_subtype ~ "IntClust Group"
+    )
+  ) %>%
+  bold_labels() %>%
+  modify_caption("**Table 1B: Distribution of IntClust Groups Within PAM50 Subtypes**") %>%
+  modify_footnote(
+    update = everything() ~ "Values are n (row %). Row percentages show distribution of IntClust groups within each PAM50 subtype."
+  )
+# Print
+table1b
+```
