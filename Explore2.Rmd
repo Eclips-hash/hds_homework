@@ -1,0 +1,76 @@
+---
+title: "Explore 2"
+author: "Hanna Hong"
+date: "2026-02-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Install packages if needed (run once)
+# install.packages(c("tidyverse", "survival", "survminer", "gtsummary", "knitr"))
+
+library(tidyverse)    
+library(survival)     
+library(survminer)    
+library(gtsummary)    
+library(knitr)        
+library(maftools)
+```
+
+```{r load-cdata, message=FALSE, echo=FALSE}
+# Load clinical data
+clinical <- read_csv ("data/metabric_data_clinical_patient.csv")
+```
+
+```{r clean-cdata, message=FALSE, echo=FALSE}
+# Clean data - remove missing values for key variables
+clinical_clean <- clinical %>%
+  filter(
+    !is.na(pam50_subtype),
+    !is.na(intclust_subtype),
+    !is.na(os_months),
+    !is.na(os_status),
+    pam50_subtype != "NC"    
+    # Remove "Not Classified"
+  ) %>%
+  mutate(
+    os_event = ifelse(os_status == "1:DECEASED", 1, 0)
+  )
+```
+
+```{r load-mdata, message=FALSE, echo=FALSE}
+maf <- read.maf(maf = "data/metabric_data_mutations.maf")
+# Get sample IDs from MAF
+maf_samples <- getSampleSummary(maf)$Tumor_Sample_Barcode
+```
+
+```{r match-cmdata, message=FALSE}
+# Check overlap
+clinical_samples <- clinical_clean$patient_id
+maf_samples <- unique(maf@data$Tumor_Sample_Barcode)
+
+# How many match?
+cat("Patients in both datasets:", length(intersect(clinical_samples, maf_samples)), "\n")
+cat("In clinical only:", length(setdiff(clinical_samples, maf_samples)), "\n")
+cat("In MAF only:", length(setdiff(maf_samples, clinical_samples)), "\n")
+
+# Keep only samples that have both clinical and mutation data
+matched_samples <- intersect(clinical_samples, maf_samples)
+clinical_matched <- clinical_clean %>%
+  filter(patient_id %in% matched_samples)
+cat("Final matched dataset:", nrow(clinical_matched), "patients\n")
+
+# Subset MAF to matched samples
+maf_matched <- subsetMaf(maf, tsb = matched_samples)
+summary(maf_matched)
+
+# Dataset 1: All patients with complete subtype and survival data
+write_csv(clinical_clean, "output/clinical_clean.csv")
+
+# Dataset 2: Patients with both clinical and mutation data
+write_csv(clinical_matched, "output/clinical_with_mutations.csv")
+
+cat("Saved cleaned datasets to output/ folder\n")
+```
