@@ -1,0 +1,354 @@
+---
+title: "Module 3"
+author: "Hanna Hong"
+date: "`r Sys.Date()`"
+output: 
+  prettydoc::html_pretty:
+    theme: architect
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+if(!require(knitr)) install.packages("knitr", repos = "http://cran.us.r-project.org")
+if(!require(DT)) install.packages("DT", repos = "http://cran.us.r-project.org")
+if(!require(gtsummary)) install.packages("gtsummary", repos = "http://cran.us.r-project.org")
+if(!require(broom)) install.packages("broom", repos = "http://cran.us.r-project.org")
+if(!require(prettydoc)) install.packages("prettydoc", repos = "http://cran.us.r-project.org")
+
+# Load the packages
+
+library(tidyverse)
+library(knitr)
+library(DT)
+library(gtsummary)
+library(broom)
+
+```
+
+```{r cover images, echo=FALSE}
+# Import Report Cover
+knitr::include_graphics(c(
+  "https://raw.githubusercontent.com/Eclips-hash/hds_homework/main/Module1/HH_Cover_1.png",
+  "https://raw.githubusercontent.com/Eclips-hash/hds_homework/main/Module1/HH_Cover_2.png",
+  "https://raw.githubusercontent.com/Eclips-hash/hds_homework/main/Module1/HH_Cover_3.png"
+))
+```
+
+```{r data set, message=FALSE, echo=FALSE}
+# Import Data Set
+
+library(readr)
+url <- "https://raw.githubusercontent.com/Eclips-hash/hds_homework/main/Module1/CMS.csv"
+CMS1 <- read_csv(url)
+```
+
+# Abstract 
+
+**Background:**  People with multiple sclerosis (MS) often have other health conditions with their MS. While previous studies have documented differences in specific comorbidities, understanding how the presence of comorbidities varies by sex and age is important for identifying those most at risk during infectious disease outbreaks like COVID-19.
+
+**Objective:** To examine sex and age differences in comorbidity burden among adults with MS and explore preliminary associations with COVID-19 outcomes.
+
+**Methods:** We analyzed data from 1,141 people with MS collected through the COVID-19 and MS Global Data Sharing Initiative. We examined associations between sex and comorbidity presence, age group and comorbidity presence, and comorbidities and COVID-19 hospitalization outcomes. Chi-square tests and Fisher's Exact Test were used to assess statistical significance. 
+
+**Results:** The cohort included 904 females and 237 males across two age groups. Comorbidities were present in 28% of patients. Statistical analysis revealed a significant association between sex and comorbidities (χ² = 4.83, p = 0.028), with females more likely to have comorbidities. Age group showed no significant association with comorbidities (χ² = 1.70, p = 0.193). Patients with comorbidities had significantly higher odds of COVID-19 hospitalization (OR = 3.8, 95% CI: 1.19-13.05, p = 0.017).
+
+**Conclusion:** Sex differences exist in comorbidity burden among people with MS, and comorbidities significantly increase COVID-19 hospitalization risk. Analysis of specific comorbidity types was limited by small sample sizes. These findings suggest the importance of considering sex and comorbidity status when assessing COVID-19 vulnerability in MS populations.
+
+# Introduction
+
+## Background and Context
+
+Multiple Sclerosis (MS) is a chronic autoimmune disease affecting the central nervous system and is the commonest non-traumatic disabling disease to affect young adults. MS is increasingly recognised as a global disease, with rising incidence and prevalence in both developed and developing countries, and is more common in females (Dobson & Giovannoni, 2019). People with MS often experience disability progression and may be more vulnerable to infections due to both the disease itself and the immunosuppressive treatments used to manage it. The COVID-19 pandemic raised particular concerns for people with MS, as questions emerged about how their condition and treatments might affect their risk of severe COVID-19 outcomes (Louapre et al., 2020).
+
+People with MS often have additional health conditions, including diabetes, cardiovascular disease, and hypertension, which can affect their disease course (Marrie et al., 2015). During the COVID-19 pandemic, there were concerns that having multiple health conditions might compound infection risks, especially given that some MS medications suppress the immune system. However, at the start of the pandemic, there was limited data on how comorbidities in MS patients affected COVID-19 outcomes, which motivated this analysis.
+
+## Dataset and Study Design
+This study uses data from the COVID-19 and Multiple Sclerosis Global Data Sharing Initiative, which includes 1,141 adults with MS. The dataset contains various categorical and numerical variables (n=47) such as sex, MS type, age, COVID-19 symptoms, and hospitalization status.
+
+The key variables used in this analysis are:
+
+**Demographic factors:** Sex (male/female) and age (grouped as 0-17, 18-50, 51-70, and over 71 years)  
+**Comorbidities:** Whether patients had any comorbidities and specific types including diabetes, hypertension, and cardiovascular disease  
+**COVID-19 outcome:** Hospitalization due to COVID-19 (yes/no)
+
+## Study Aim and Research Questions
+
+This study looks at sex and age differences in comorbidity burden among adults with MS and whether these comorbidities are linked to COVID-19 hospitalization.
+
+The research questions are: 
+
+1. Is there an association between sex and the presence of comorbidities in people with MS?  
+2. Is there an association between age group and the presence of comorbidities in people with MS?  
+3. Do comorbidities affect the likelihood of COVID-19 hospitalization in people with MS?  
+4. Are different types of comorbidities associated with different likelihoods of COVID-19 hospitalization?
+
+These findings could help identify which MS patients are at higher risk during infectious disease outbreaks.
+
+# Methods
+
+## Data Source and Ethical Considerations
+
+This study uses data from the COVID-19 and MS Global Data Sharing Initiative (Peeters et al., 2020), which was set up in 2020 to understand how COVID-19 affects people with MS. The dataset is publicly available through PhysioNet (Khan et al., 2024) and was collected using a data entry tool where clinicians and people with MS could enter information directly. The study received ethical approval from the ethics committee at Hasselt University (The Ethical committee UHasselt, CME2020/025 AMD3).
+The dataset has been de-identified to protect patient privacy and follows HIPAA guidelines. Privacy techniques including K-anonymity and ℓ-diversity were used before making the data publicly available.
+
+## Data Preparation and Cleaning
+
+We prepared the data through several steps. First, we recoded categorical variables to have clear labels instead of numeric codes. Age categories (0, 1, 2, 3) were converted to descriptive labels (0-17, 18-50, 51-70, 71+ years). Sex categories were standardized to "Male" and "Female", and yes/no responses for comorbidities and hospitalization were capitalized for consistency.
+
+After recoding, we selected variables relevant to our research questions: sex, age group, hospitalization status, and comorbidity data. We examined both the overall presence of any comorbidity and nine specific comorbidity types (diabetes, hypertension, cardiovascular disease, chronic lung disease, chronic kidney disease, chronic liver disease, immunodeficiency, malignancy, and neurological/neuromuscular conditions).
+
+Data quality checks confirmed that all 1,141 records had complete information for sex, age group, hospitalization status, and the presence of any comorbidities. However, data on specific comorbidity types was only available for approximately 25% of records. Given this limitation, our primary analysis focused on whether patients had any comorbidity.
+
+```{r data prep, message=FALSE, echo=FALSE}
+# Load dplyr package
+library(dplyr)
+
+CMS1 <- CMS1 %>%
+  mutate(
+    # Assign age group labels based on age
+    age_group = case_when(
+      age_in_cat == 0 ~ "0-17",
+      age_in_cat == 1 ~ "18-50",
+      age_in_cat == 2 ~ "51-70",
+      age_in_cat == 3 ~ "71+",
+
+      TRUE ~ "Unknown"  # This is a fallback for unexpected values
+    ),
+    
+      # Assign sex labels (male = Male, female = Female)
+    sex = case_when(
+      sex == "male" ~ "Male",
+      sex == "female" ~ "Female",
+      TRUE ~ "Unknown"  # This is a fallback for unexpected values
+    ),
+    
+    # Assign comorbidities labels (yes = Yes, no = No)
+    has_comorbidities = case_when(
+      has_comorbidities == "yes" ~ "Yes",
+      has_comorbidities == "no" ~ "No",
+      TRUE ~ "Unknown"  # This is a fallback for other values
+    ),
+    
+    # Assign hospital admission labels (yes = Yes, no = No)
+    covid19_admission_hospital = case_when(
+      covid19_admission_hospital == "yes" ~ "Yes",
+      covid19_admission_hospital == "no" ~ "No",
+      TRUE ~ "Unknown"  # This is a fallback for other values
+    ),
+  )
+
+#now selecting the variables to explore further
+CMS1 <- CMS1 %>%
+  select(age_group, sex, has_comorbidities, covid19_admission_hospital)
+```
+
+## Statistical Analysis Methods
+
+We used descriptive statistics to summarize the cohort characteristics by sex, reporting frequencies (counts) and percentages for categorical variables.
+
+To test for associations between categorical variables, we used chi-square tests. We chose chi-square tests because they're appropriate for comparing categorical variables like sex and comorbidity status. The chi-square test compares what we observed in our data to what we would expect if there was no relationship. We considered p-values less than 0.05 as statistically significant.
+
+For the analysis of comorbidities and COVID-19 hospitalization, we initially used a chi-square test but found that the small number of hospitalization events (only 15 cases) meant that expected cell frequencies fell below 5. When this happens, the chi-square test becomes unreliable, so we used Fisher's Exact Test instead, which is appropriate for small sample sizes. Chi-square tests assume that each cell in the comparison table has at least 5 expected observations. When this assumption is violated, the test becomes unreliable and can give misleading p-values. Fisher's Exact Test doesn't rely on this assumption - instead, it calculates the exact probability of observing the data pattern we found. This makes it more reliable when sample sizes are small. 
+
+We also tried to examine whether specific comorbidity types had different associations with hospitalization. However, the small number of hospitalization cases across multiple comorbidity categories made this analysis unreliable.
+
+All analyses were done using R version 4.0 or higher, with the tidyverse, gtsummary, and broom packages for data handling, table creation, and statistical testing.
+
+# Results
+
+## Overview of Analysis-Ready Dataset
+
+The prepared dataset includes all 1,141 patient records with no missing data for sex, age, hospitalization status, and presence of any comorbidities. Table 1 shows a sample of the dataset used in this study.
+
+```{r data overview, echo=FALSE}
+DT::datatable(
+  CMS1,
+  extensions = 'Buttons',
+  options = list(
+              paging = TRUE,
+              searching = TRUE,
+              fixedColumns = TRUE,
+              autoWidth = TRUE,
+              ordering = TRUE,
+              dom = 'tB',
+              buttons = c('copy', 'excel')
+              ),
+              class = "display"
+)
+```
+
+**Table 1.** Overview of Analysis-Ready Dataset
+
+## Cohort Characteristics
+
+Table 2 presents the baseline characteristics of the study population by sex. The cohort included 904 females (79%) and 237 males (21%). The majority of participants were in the 18-50 age group (77%), followed by the 51-70 age group (23%).
+Comorbidities were present in 328 patients (28.7% overall). The distribution showed that 274 females (30%) had comorbidities compared to 54 males (23%). COVID-19 hospitalization was rare, occurring in only 15 patients (1.3% of the total cohort), with 14 females (1.5%) and 1 male (0.4%) requiring hospital admission.
+
+```{r cohort table, echo=FALSE, message=FALSE}
+# Define categorical variables
+categorical_vars <- c("age_group", "sex", "has_comorbidities", "covid19_admission_hospital")
+
+# Create the summary table
+summary_table <- CMS1 %>%
+
+    tbl_summary(
+    by = sex,  
+    statistic = list(all_continuous() ~ "{mean} ({sd})",  # Format continuous variables as mean (SD)
+                     all_categorical() ~ "{n} ({p}%)"),  # Format categorical variables as n (%)
+    digits = all_continuous() ~ 2,  # Round continuous variables to 2 decimal places
+    missing = "no"  # Show missing data counts
+    ) 
+# Render the summary table in HTML format
+summary_table
+```
+
+**Table 2.** Cohort Characteristics by Sex (n=1,141)
+
+## Association Between Sex and Comorbidities
+
+The chi-square test revealed a statistically significant association between sex and the presence of comorbidities (χ² = 4.83, df = 1, p = 0.028). This means that comorbidities are distributed differently between males and females in this MS group. Specifically, females were more likely to have comorbidities (30%) compared to males (23%).
+
+Figure 1 visualizes this relationship, showing the count of patients with and without comorbidities for each sex. The bars clearly illustrate that among females, a higher proportion have comorbidities compared to males, which aligns with our statistical finding.
+
+
+```{r sex comorbidity, echo=FALSE, message=FALSE, warning=FALSE}
+# Chi-square test between comorbidities and sex
+chi_como_sex <- chisq.test(table(CMS1$has_comorbidities, CMS1$sex))
+
+# Create visualization
+ggplot(CMS1, aes(x = sex, fill = has_comorbidities)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Comorbidities by Sex",
+       x = "Sex",
+       y = "Number of Patients",
+       fill = "Comorbidities") +
+  theme_minimal() +
+  scale_fill_manual(values = c("lightblue", "lightcoral"))  
+```  
+
+**Figure 1.** Distribution of comorbidities by sex in people with MS
+
+## Association Between Age Group and Comorbidities
+
+In contrast to sex, the chi-square test found no statistically significant association between age group and the presence of comorbidities (χ² = 1.70, df = 1, p = 0.193). This p-value is greater than 0.05, meaning we cannot conclude that comorbidity presence differs significantly across age groups in this population.
+
+Figure 2 displays the distribution of comorbidities across the two age groups. The proportions of participants with comorbidities appear similar in both the 18-50 group and the 51-70 group, which aligns with the chi-square test finding no significant association between age group and comorbidity presence
+
+```{r age comorbidity, echo=FALSE, message=FALSE, warning=FALSE}
+# Chi-square test between comorbidities and age
+chi_como_age <- chisq.test(table(CMS1$has_comorbidities, CMS1$age_group))
+
+# Create visualization
+ggplot(CMS1, aes(x = age_group, fill = has_comorbidities)) +
+  geom_bar(position = "dodge") +
+ labs(title = "Comorbidities by Age Group",
+       x = "Age Group",
+       y = "Number of Patients",
+       fill = "Comorbidities") +
+  theme_minimal() +
+  scale_fill_manual(values = c("lightblue", "orange"))  
+```
+
+**Figure 2.** Distribution of comorbidities by age group in people with MS
+
+## Association Between Comorbidities and COVID-19 Hospitalization
+
+Fisher's Exact Test revealed a statistically significant association between the presence of comorbidities and COVID-19 hospitalization (p = 0.017). The odds ratio of 3.8 (95% CI: 1.19-13.05) shows that patients with comorbidities had approximately 3.8 times higher odds of requiring hospital admission for COVID-19 compared to those without comorbidities.
+
+This finding matters for patient care. Of the 15 patients who required hospitalization, 9 had comorbidities while only 6 did not. Given that patients with comorbidities represent only 29% of the cohort, their overrepresentation among hospitalized patients (60%) suggests that comorbidities are an important risk factor for severe COVID-19 outcomes in people with MS. To put this in perspective, if comorbidities had no effect on hospitalization risk, we would expect the 15 hospitalized patients to be distributed proportionally. Meaning about 4-5 patients with comorbidities (29% of 15) and 10-11 without comorbidities. Instead, we observed 9 with comorbidities and 6 without, which is almost the reverse of what we'd expect by chance. This overrepresentation is what makes the statistical test significant despite the small sample size. 
+
+Figure 3 illustrates this relationship visually. The chart shows that among patients with comorbidities, the proportion requiring hospitalization is noticeably higher than among those without comorbidities.
+
+```{r comorbidity hospitalization, echo=FALSE, message=FALSE, warning=FALSE}
+# Fisher's Exact Test for comorbidities and hospitalization
+fisher_como_hosp <- fisher.test(table(CMS1$has_comorbidities, CMS1$covid19_admission_hospital))
+
+# Create visualization
+ggplot(CMS1, aes(x = has_comorbidities, fill = covid19_admission_hospital)) +
+  geom_bar(position = "dodge") +
+  labs(title = "COVID-19 Hospitalization by Comorbidity Status",
+       x = "Comorbidities Present",
+       y = "Number of Patients",
+       fill = "Hospitalized") +
+  theme_minimal() +
+  scale_fill_manual(values = c("lightblue", "lightgreen"))
+```
+
+**Figure 3.** COVID-19 hospitalization by comorbidity status
+
+## Exploratory Analysis: Specific Comorbidity Types
+
+We also tried to look at whether different types of comorbidities had different effects on hospitalization risk. The dataset includes nine specific comorbidity types: cardiovascular disease, chronic kidney disease, chronic liver disease, diabetes, hypertension, immunodeficiency, chronic lung disease, malignancy, and neurological conditions.
+
+However, this analysis revealed an important limitation. The 15 hospitalization cases were spread very thinly across multiple categories. For example, only 1 patient with cardiovascular disease was hospitalized, and only 3 patients with hypertension were hospitalized. These very small numbers make statistical testing unreliable.
+
+We found that the sample sizes were too small to run reliable statistical tests on individual comorbidity types. We cannot draw reliable conclusions about which specific comorbidity types pose the greatest risk for COVID-19 hospitalization in this dataset. Rather than report results that might be misleading, we chose to focus only on the overall presence of any comorbidity, where the sample size was adequate for statistical testing.
+
+# Discussion
+
+## Key Findings and Interpretation
+
+This study looked at sex and age differences in comorbidities among people with MS, and whether comorbidities were linked to COVID-19 hospitalization. We found three main things.
+
+First, females with MS had more comorbidities than males. This is interesting because MS already affects more women than men. The female-to-male ratio is about 3:1 (Dobson and Giovannoni, 2019). The reasons for this aren't completely clear. It could be related to hormonal differences between men and women, or it's possible that MS interacts differently with other conditions depending on sex.
+
+Second, we didn't find a significant relationship between age and comorbidities in our MS group. This was surprising because generally, older people tend to have more health problems. However, our sample didn't include many older adults. Most participants were younger or middle-aged. Our age distribution might not be representative of the general population, and the way we grouped ages into categories might have made it harder to spot patterns.
+
+Third, and most important for patient care, we found that having comorbidities significantly increased the risk of being hospitalized with COVID-19. People with MS and comorbidities were nearly four times more likely to need hospital admission than people without comorbidities.
+
+## Comparison with Existing Literature
+
+Our finding that females with MS have more comorbidities aligns with previous research by Marrie et al. (2015). However, the reasons for the sex difference aren't fully understood. Some researchers suggest it could be related to hormonal factors, while others point to differences in healthcare-seeking behavior.
+
+Our finding about comorbidities and COVID-19 hospitalization is consistent with broader COVID-19 research showing that people with underlying health conditions face higher risks (Louapre et al., 2020). What our study adds is showing that this pattern holds true specifically in MS populations.
+
+The lack of association between age and comorbidities in our study differs from typical patterns. Most studies show that comorbidity burden increases with age (Piccirillo et al., 2008). This difference likely reflects the limitations in our sample. Our dataset only included participants between 18-70 years, with most being in the younger age range. The narrow age range may explain why we didn't detect this pattern.
+
+## Strengths and Limitations
+
+Our study had some good points. We used data from a fairly large group of MS patients from different countries. We also used appropriate statistical tests. For instance, we used Fisher's Exact Test when we had small numbers in some categories.
+
+However, there are important limitations to keep in mind. The biggest issue is that we only had 15 hospitalized patients. While we still found a statistically significant result, 15 cases is a small number. The wide confidence interval (1.19-13.05) shows the uncertainty around our estimate. We couldn't examine specific types of comorbidities separately because the cases were spread across too many categories.
+
+Our sample also had more younger and middle-aged people, which made it difficult to examine age-related patterns properly. The dataset was collected during the early pandemic period, which may not reflect current patterns now that vaccines and treatments are available. Finally, the data came from voluntary reporting, which might not represent all MS patients with COVID-19.
+
+
+## Clinical and Public Health Implications
+
+Even with these limitations, our results do have practical uses. Doctors caring for MS patients should know that patients with comorbidities are at higher risk for severe COVID-19. During disease outbreaks, these patients might need extra protection. Things like getting vaccines first and more frequent check-ins. Practically, this could mean creating risk tiers for MS patients. Those with both MS and comorbidities could be classified as high-risk and prioritized for preventive measures like vaccines and antiviral treatments. Healthcare systems could use existing medical records to identify these high-risk patients proactively rather than waiting for them to get sick. This kind of risk stratification became especially important during the pandemic when resources like vaccines were initially limited and needed to be allocated to those at highest risk.
+
+The sex difference we found also matters for clinical care. Since female MS patients tend to have more comorbidities, healthcare providers might need to be more proactive about screening for and managing other health conditions in their female patients.
+For public health planning during pandemics, both sex and comorbidity status should be considered when identifying which MS patients need the most protection and resources.
+
+## Future Research Directions
+
+Studies with more COVID-19 hospitalized MS patients would help us understand which specific comorbidities are most dangerous. Having larger samples would allow researchers to examine individual comorbidity types separately. It would also be useful to follow MS patients over time to see how their comorbidities change and whether they affect long-term COVID-19 outcomes.
+
+We still don't fully understand why females with MS have more comorbidities. Research looking at why this sex difference exists could inform more personalized approaches to comorbidity screening and management.
+
+# Conclusion
+
+This study found that female MS patients had more comorbidities than males (30% vs 23%, p=0.028), and that having comorbidities increased the odds of COVID-19 hospitalization by nearly four times (OR=3.8, p=0.017). Age was not significantly related to comorbidities in our sample (p=0.193), possibly because we had mostly younger participants.
+
+These findings show that healthcare providers should consider both sex and comorbidity status when assessing COVID-19 risk in MS patients. Comorbidity screening and management is important, especially for female patients.
+
+There are important limitations to acknowledge. We only had 15 hospitalization cases, which limits what we can confidently conclude. The sample was also skewed toward younger participants. Larger studies with more diverse age groups would be needed to figure out which specific comorbidities are most risky.
+
+Despite these limitations, this study contributes to our understanding of how comorbidities affect COVID-19 outcomes in MS populations and highlights the importance of considering patient characteristics when assessing risk during infectious disease outbreaks.
+
+# References
+
+Dobson, R. and Giovannoni, G. (2019) 'Multiple sclerosis - a review', European Journal of Neurology, 26(1), pp. 27-40.
+
+Khan, H., Geys, L., Baneke, P., Comi, G. and Peeters, L. (2024) Patient-level dataset to study the effect of COVID-19 in people with Multiple Sclerosis (version 1.0.1). PhysioNet.
+
+Louapre, C., Collongues, N., Stankoff, B., Giannesini, C., Papeix, C., Bensa, C., Deschamps, R., Créange, A., Wahab, A., Pelletier, J., Heinzlef, O., Labauge, P., Guilloton, L., Ahle, G., Goudot, M., Bigaut, K., Laplaud, D.A., Vukusic, S., Lubetzki, C., De Sèze, J. and Videt, D. (2020) 'Clinical characteristics and outcomes in patients with coronavirus disease 2019 and multiple sclerosis', JAMA Neurology, 77(9), pp. 1079-1088.
+
+Marrie, R.A., Cohen, J., Stuve, O., Trojano, M., Sørensen, P.S., Reingold, S. and Reider, N. (2015) 'A systematic review of the incidence and prevalence of comorbidity in multiple sclerosis: Overview', Multiple Sclerosis Journal, 21(3), pp. 263-281.
+
+Peeters, L.M., Parciak, T., Walton, C., Geys, L., Moreau, Y., De Brouwer, E. et al. (2020) 'COVID-19 in people with multiple sclerosis: A global data sharing initiative', Multiple Sclerosis, 26(10), pp. 1157-1162.
+
+Piccirillo, J.F., Vlahiotis, A., Barrett, L.B., Flood, K.L., Spitznagel, E.L. and Steyerberg, E.W. (2008) 'The changing prevalence of comorbidity across the age spectrum', Critical Reviews in Oncology/Hematology, 67(2), pp. 124-132.
