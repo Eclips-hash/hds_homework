@@ -3,3 +3,7 @@
 .Rproj.user
 .Ruserdata
 *.html
+
+# Massive Data Files
+metabric_data_expression.txt
+metabric_data_expression_normalised.txt
